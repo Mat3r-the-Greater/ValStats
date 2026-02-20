@@ -25,6 +25,7 @@
 
 <style scoped>
     .title {
+        padding-top:25px;
         text-align: center;
         margin: 20px 0;
         font-size: 50px;
