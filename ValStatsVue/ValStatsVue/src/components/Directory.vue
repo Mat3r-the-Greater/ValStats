@@ -27,13 +27,16 @@
     .title {
         text-align: center;
         margin: 20px 0;
-        font-size: 32px;
-        font-family: serif;
+        font-size: 50px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        color: #e41e3f;
     }
 
     .nav-container {
-        background-color: #f0f0f0;
+        background-color: #2a2a2a;
         border-bottom: 2px solid #000;
+        border-top: 2px solid #000;
         padding: 20px;
     }
 

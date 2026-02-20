@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-        <Directory />
+        <Directory v-if="$route.name !== 'Home'" />
         <router-view />
     </div>
 </template>
@@ -20,9 +20,12 @@
     body {
         margin: 0;
         padding: 0;
+        background-color: #2a2a2a;
     }
 
     #app {
-        font-family: Avenir, Helvetica, Arial, sans-serif;
+        font-family: 'Montserrat', sans-serif;
+        color: white;
+        min-height: 100vh;
     }
 </style>
