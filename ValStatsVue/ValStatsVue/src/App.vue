@@ -1,17 +1,25 @@
 <template>
     <div id="app">
-        <Directory v-if="$route.name !== 'Home'" />
-        <router-view />
+        <template v-if="!authStore.loading">
+            <Directory v-if="$route.name !== 'Home' && $route.name !== 'Auth' && $route.name !== 'NotAuthorized'" />
+            <router-view />
+        </template>
+        <div v-else class="loading-screen">
+            <p>Loading...</p>
+        </div>
     </div>
 </template>
 
 <script>
     import Directory from './components/Directory.vue'
+    import { useAuthStore } from './stores/authStore'
 
     export default {
         name: 'App',
-        components: {
-            Directory
+        components: { Directory },
+        setup() {
+            const authStore = useAuthStore()
+            return { authStore }
         }
     }
 </script>
@@ -27,5 +35,14 @@
         font-family: 'Montserrat', sans-serif;
         color: white;
         min-height: 100vh;
+    }
+
+    .loading-screen {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: #888;
+        font-size: 18px;
     }
 </style>

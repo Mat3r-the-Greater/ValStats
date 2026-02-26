@@ -8,9 +8,17 @@
                 </div>
 
                 <div class="nav-center">
-                    <router-link to="/add-match" class="nav-button">Add New Match</router-link>
+                    <!-- Captains, Coaches, and Admins only -->
+                    <router-link v-if="authStore.isCaptain" to="/add-match" class="nav-button">Add New Match</router-link>
                     <router-link to="/season-view" class="nav-button">Season View</router-link>
                     <router-link to="/opponents" class="nav-button">Opponents</router-link>
+                    <!-- Admin only -->
+                    <router-link v-if="authStore.isAdmin" to="/admin" class="nav-button admin-btn">Admin Panel</router-link>
+                </div>
+
+                <div class="nav-right">
+                    <span class="role-badge">{{ authStore.role }}</span>
+                    <button class="nav-button signout-btn" @click="signOut">Sign Out</button>
                 </div>
             </div>
         </nav>
@@ -18,14 +26,26 @@
 </template>
 
 <script>
+    import { useAuthStore } from '../stores/authStore'
+
     export default {
-        name: 'Navigation'
+        name: 'Navigation',
+        setup() {
+            const authStore = useAuthStore()
+            return { authStore }
+        },
+        methods: {
+            async signOut() {
+                await this.authStore.signOut()
+                this.$router.push('/auth')
+            }
+        }
     }
 </script>
 
 <style scoped>
     .title {
-        padding-top:25px;
+        padding-top: 25px;
         text-align: center;
         margin: 20px 0;
         font-size: 50px;
@@ -44,7 +64,7 @@
     .nav-content {
         display: flex;
         align-items: center;
-        max-width: 1200px;
+        max-width: 1750px;
         margin: 0 auto;
         position: relative;
     }
@@ -53,12 +73,20 @@
         margin-right: auto;
     }
 
+    .nav-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
     .nav-center {
         display: flex;
         gap: 20px;
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
+        text-align:center;
     }
 
     .nav-button {
@@ -70,9 +98,41 @@
         border: 2px solid #000;
         display: inline-block;
         transition: background-color 0.3s;
+        cursor: pointer;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 600;
     }
 
         .nav-button:hover {
             background-color: #c41830;
         }
+
+    .admin-btn {
+        background-color: #cebe0f;
+    }
+
+        .admin-btn:hover {
+            background-color: #b5a70d;
+        }
+
+    .signout-btn {
+        background-color: #444;
+        font-size: 14px;
+        padding: 8px 18px;
+    }
+
+        .signout-btn:hover {
+            background-color: #333;
+        }
+
+    .role-badge {
+        background-color: #333;
+        border: 1px solid #555;
+        color: #ccc;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
 </style>
