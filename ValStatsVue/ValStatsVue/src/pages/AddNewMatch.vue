@@ -1,8 +1,9 @@
-<template>
+﻿<template>
     <div class="add-match">
         <div class="header">
             <h1>Add New Match</h1>
         </div>
+
         <div class="selections">
             <nav class="season">
                 <h2>Season:</h2>
@@ -39,32 +40,59 @@
                 <input type="date" v-model="selectedDate" />
             </nav>
         </div>
+
+        <!-- Opponent Row -->
         <div class="opponent-row">
             <h2>Opponent:</h2>
             <div class="opponent-input-wrapper" ref="opponentWrapper">
-                <input type="text"
-                       class="opponent-input"
+                <input class="opponent-input"
                        v-model="opponentInput"
+                       placeholder="Enter opponent name..."
                        @input="onOpponentInput"
-                       @focus="showOpponentDropdown = true"
-                       @keydown.enter="onOpponentEnter"
-                       placeholder="Enter opponent name..." />
-                <ul v-if="showOpponentDropdown && filteredOpponents.length > 0" class="opponent-dropdown">
-                    <li v-for="opponent in filteredOpponents"
-                        :key="opponent.id"
-                        @mousedown.prevent="selectOpponent(opponent)">
-                        {{ opponent.name }}
+                       @keydown.enter.prevent="onOpponentEnter"
+                       @focus="showOpponentDropdown = filteredOpponents.length > 0" />
+                <ul v-if="showOpponentDropdown && filteredOpponents.length" class="opponent-dropdown">
+                    <li v-for="opp in filteredOpponents"
+                        :key="opp.id"
+                        @mousedown.prevent="selectOpponent(opp)">
+                        {{ opp.name }}
                     </li>
                 </ul>
             </div>
         </div>
+
+        <!-- ── NEW: Screenshot Scanner ─────────────────────────────────── -->
+        <div class="image-reader-section">
+            <button class="toggle-reader-btn" @click="showImageReader = !showImageReader">
+                {{ showImageReader ? '▲ Hide Scanner' : '📷 Import from Screenshot' }}
+            </button>
+
+            <div v-if="showImageReader" class="reader-wrapper">
+                <ValImageReader @match-parsed="onMatchParsed" />
+            </div>
+
+            <!-- Badge shown after a successful scan -->
+            <div v-if="imageMatchData" class="scan-badge">
+                ✓ Screenshot scanned —
+                <strong>{{ imageMatchData.result }}</strong>
+                {{ imageMatchData.ourScore }}–{{ imageMatchData.theirScore }}
+                ({{ imageMatchData.ourTeam.length + imageMatchData.theirTeam.length }} players)
+                <button class="clear-scan" @click="imageMatchData = null">✕</button>
+            </div>
+        </div>
+        <!-- ── END NEW ──────────────────────────────────────────────────── -->
+        <!-- Submit -->
+        <div class="submit-row">
+            <button class="submit-btn" @click="submitMatch">submit</button>
+        </div>
+
+        <!-- Confirm New Opponent Modal -->
         <div v-if="showConfirmModal" class="modal-overlay">
             <div class="modal-box">
                 <h3>New Opponent</h3>
-                <p>"{{ pendingOpponent }}" was not found. Add them as a new opponent?</p>
+                <p>"{{ pendingOpponent }}" isn't in the list yet.<br />Add them as a new opponent?</p>
                 <div class="modal-buttons">
                     <button class="btn-confirm" @click="confirmNewOpponent">Yes, Add</button>
-                    <p v-if="confirmError" class="modal-error">{{ confirmError }}</p>
                     <button class="btn-cancel" @click="cancelNewOpponent">Cancel</button>
                 </div>
             </div>
@@ -74,9 +102,15 @@
 
 <script>
     import { supabase } from '../supabase'
+    import ValImageReader from '../components/ValImageReader.vue'   // ← NEW
 
     export default {
         name: 'AddNewMatch',
+
+        components: {
+            ValImageReader,   // ← NEW
+        },
+
         data() {
             return {
                 selectedSeason: '',
@@ -88,6 +122,7 @@
                 selectedTeam: '',
                 teams: [],
                 selectedDate: new Date().toISOString().split('T')[0],
+
                 opponentInput: '',
                 selectedOpponent: null,
                 opponents: [],
@@ -95,9 +130,14 @@
                 showOpponentDropdown: false,
                 showConfirmModal: false,
                 pendingOpponent: '',
-                confirmError: '',
-            };
+
+                // ── NEW ─────────────────────────────────────────────────
+                showImageReader: false,
+                imageMatchData: null,
+                // ── END NEW ─────────────────────────────────────────────
+            }
         },
+
         async created() {
             const { data: seasons } = await supabase
                 .from('seasons')
@@ -116,7 +156,17 @@
                 .order('name')
             this.teams = teams
         },
+
+        mounted() {
+            document.addEventListener('click', this.handleOutsideClick)
+        },
+
+        beforeUnmount() {
+            document.removeEventListener('click', this.handleOutsideClick)
+        },
+
         methods: {
+            // ── Season / League / Opponent selectors (unchanged) ──────────
             async onSeasonSelect(season) {
                 this.selectedSeason = season.name
                 this.selectedSeasonId = season.id
@@ -133,22 +183,22 @@
                     .order('name')
                 this.leagues = leagues
             },
+
             async onLeagueSelect(league) {
                 this.selectedLeague = league.name
                 this.selectedLeagueId = league.id
                 this.opponentInput = ''
                 this.selectedOpponent = null
 
-                const { data: opponents, error } = await supabase
+                const { data: opponents } = await supabase
                     .from('opponents')
                     .select('*')
                     .eq('league_id', league.id)
                     .order('name')
-
-                if (error) console.error('Failed to load opponents:', error.message)
                 this.opponents = opponents || []
                 this.filteredOpponents = []
             },
+
             onOpponentInput() {
                 this.selectedOpponent = null
                 const query = this.opponentInput.toLowerCase()
@@ -157,12 +207,14 @@
                 )
                 this.showOpponentDropdown = true
             },
+
             selectOpponent(opponent) {
                 this.opponentInput = opponent.name
                 this.selectedOpponent = opponent
                 this.showOpponentDropdown = false
                 this.filteredOpponents = []
             },
+
             onOpponentEnter() {
                 const match = this.opponents.find(
                     o => o.name.toLowerCase() === this.opponentInput.toLowerCase()
@@ -175,43 +227,70 @@
                     this.showOpponentDropdown = false
                 }
             },
-            async confirmNewOpponent() {
-                if (!this.selectedLeagueId) {
-                    this.confirmError = 'Please select a league before adding an opponent.'
-                    return
-                }
 
+            async confirmNewOpponent() {
                 const { data, error } = await supabase
                     .from('opponents')
                     .insert({ name: this.pendingOpponent, league_id: this.selectedLeagueId })
                     .select()
                     .single()
 
-                if (error) {
-                    this.confirmError = 'Failed to add opponent: ' + error.message
-                    return
-                }
-
-                if (data) {
+                if (!error && data) {
                     this.opponents.push(data)
                     this.selectOpponent(data)
                 }
                 this.showConfirmModal = false
-                this.confirmError = ''
                 this.pendingOpponent = ''
             },
+
             cancelNewOpponent() {
                 this.showConfirmModal = false
                 this.pendingOpponent = ''
-                this.confirmError = ''
                 this.opponentInput = ''
             },
+
             handleOutsideClick(e) {
                 if (this.$refs.opponentWrapper && !this.$refs.opponentWrapper.contains(e.target)) {
                     this.showOpponentDropdown = false
                 }
-            }
-        }
+            },
+
+            // ── NEW: called when ValImageReader emits match-parsed ────────
+            onMatchParsed(data) {
+                this.imageMatchData = data
+                this.showImageReader = false  // collapse the scanner after confirming
+            },
+            // ── END NEW ──────────────────────────────────────────────────
+
+            // ── Submit (add imageMatchData to your DB call here) ─────────
+            async submitMatch() {
+                if (!this.selectedSeasonId || !this.selectedLeagueId ||
+                    !this.selectedTeam || !this.selectedOpponent) {
+                    alert('Please fill in Season, League, Team, and Opponent before submitting.')
+                    return
+                }
+
+                // imageMatchData is available here if the user scanned a screenshot.
+                // Example of what it contains:
+                //   this.imageMatchData.result       → 'Victory' | 'Defeat'
+                //   this.imageMatchData.ourScore     → 13
+                //   this.imageMatchData.theirScore   → 7
+                //   this.imageMatchData.ourTeam      → [ { name, acs, kills, deaths, ... } ]
+                //   this.imageMatchData.theirTeam    → [ { name, acs, kills, deaths, ... } ]
+                //
+                // Wire these into your Supabase insert when you're ready:
+                console.log('Submitting match with data:', {
+                    season: this.selectedSeasonId,
+                    league: this.selectedLeagueId,
+                    team: this.selectedTeam,
+                    opponent: this.selectedOpponent,
+                    date: this.selectedDate,
+                    matchData: this.imageMatchData,
+                })
+
+                alert('Submit logic goes here — see console for data shape.')
+            },
+        },
     }
 </script>
 
@@ -219,7 +298,13 @@
     .add-match {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 0 20px;
+        padding: 0 20px 40px;
+    }
+
+    .header {
+        padding-top: 25px;
+        text-align: center;
+        text-decoration: underline;
     }
 
     .selections {
@@ -227,12 +312,6 @@
         padding: 20px 0;
         align-items: center;
         gap: 30px;
-    }
-
-    .header {
-        padding-top: 25px;
-        text-align: center;
-        text-decoration: underline;
     }
 
     input[type="date"] {
@@ -247,6 +326,7 @@
             filter: invert(1);
         }
 
+    /* Opponent Row */
     .opponent-row {
         display: flex;
         align-items: center;
@@ -309,10 +389,96 @@
                 background-color: #e41e3f;
             }
 
+    /* ── NEW: Image Reader Section ── */
+    .image-reader-section {
+        margin: 8px 0 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .toggle-reader-btn {
+        align-self: flex-start;
+        background: transparent;
+        border: 1px solid #555;
+        color: #ccc;
+        padding: 8px 18px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 14px;
+        transition: border-color 0.2s, color 0.2s;
+    }
+
+        .toggle-reader-btn:hover {
+            border-color: #e41e3f;
+            color: white;
+        }
+
+    .reader-wrapper {
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 16px;
+        background: #1e1e1e;
+    }
+
+    .scan-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(45, 212, 191, 0.08);
+        border: 1px solid rgba(45, 212, 191, 0.25);
+        color: #2dd4bf;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .clear-scan {
+        background: none;
+        border: none;
+        color: #2dd4bf;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0;
+        line-height: 1;
+    }
+
+        .clear-scan:hover {
+            color: #fff;
+        }
+    /* ── END NEW ── */
+
+    /* Submit */
+    .submit-row {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 8px;
+    }
+
+    .submit-btn {
+        background-color: #e41e3f;
+        color: white;
+        border: 2px solid #000;
+        padding: 10px 32px;
+        font-size: 18px;
+        font-family: 'Montserrat', sans-serif;
+        cursor: pointer;
+        border-radius: 4px;
+        text-transform: lowercase;
+        letter-spacing: 0.05em;
+    }
+
+        .submit-btn:hover {
+            background-color: #c41830;
+        }
+
+    /* Confirm Modal */
     .modal-overlay {
         position: fixed;
         inset: 0;
-        background-color: rgba(0, 0, 0, 0.65);
+        background-color: rgba(0,0,0,0.65);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -375,10 +541,4 @@
         .btn-cancel:hover {
             background-color: #444;
         }
-
-    .modal-error {
-        color: #e41e3f;
-        font-size: 14px;
-        margin: -10px 0 16px 0;
-    }
 </style>
