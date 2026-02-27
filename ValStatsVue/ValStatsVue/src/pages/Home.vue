@@ -5,9 +5,11 @@
             <nav class="nav-container">
                 <div class="nav-content">
                     <div class="nav-center">
-                        <div><router-link to="/add-match" class="nav-button">Add New Match</router-link></div>
+                        <router-link v-if="authStore.isCaptain" to="/add-match" class="nav-button">Add New Match</router-link>
                         <div><router-link to="/season-view" class="nav-button">Season View</router-link></div>
                         <div><router-link to="/opponents" class="nav-button">Opponents</router-link></div>
+                        <!--admin only-->
+                        <router-link v-if="authStore.isAdmin" to="/admin" class="nav-button admin-btn"> Admin Panel </router-link>
                     </div>
                 </div>
             </nav>
@@ -16,8 +18,14 @@
 </template>
 
 <script>
+    import { useAuthStore } from '../stores/authStore'
+
     export default {
-        name: 'Navigation'
+        name: 'Home',
+        setup() {
+            const authStore = useAuthStore()
+            return { authStore }
+        }
     }
 </script>
 
@@ -73,10 +81,19 @@
         display: inline-block;
         transition: background-color 0.3s;
         text-align: center;
-        min-width: 200px
+        min-width: 200px;
+        font-weight: 600;
     }
 
         .nav-button:hover {
             background-color: #c41830;
+        }
+
+    .admin-btn {
+        background-color: #cebe0f;
+    }
+
+        .admin-btn:hover {
+            background-color: #b5a70d;
         }
 </style>
