@@ -61,7 +61,7 @@
             </div>
         </div>
 
-        <!-- ── NEW: Screenshot Scanner ─────────────────────────────────── -->
+        <!-- Screenshot Scanner -->
         <div class="image-reader-section">
             <button class="toggle-reader-btn" @click="showImageReader = !showImageReader">
                 {{ showImageReader ? '▲ Hide Scanner' : '📷 Import from Screenshot' }}
@@ -71,7 +71,6 @@
                 <ValImageReader @match-parsed="onMatchParsed" />
             </div>
 
-            <!-- Badge shown after a successful scan -->
             <div v-if="imageMatchData" class="scan-badge">
                 ✓ Screenshot scanned —
                 <strong>{{ imageMatchData.result }}</strong>
@@ -80,10 +79,20 @@
                 <button class="clear-scan" @click="imageMatchData = null">✕</button>
             </div>
         </div>
-        <!-- ── END NEW ──────────────────────────────────────────────────── -->
-        <!-- Submit -->
+
+        <!-- Submit error -->
+        <p v-if="submitError" class="submit-error">⚠ {{ submitError }}</p>
+
+        <!-- Submit Row -->
         <div class="submit-row">
-            <button class="submit-btn" @click="submitMatch">submit</button>
+            <button class="submit-btn"
+                    :class="{ 'submit-btn--loading': isSubmitting, 'submit-btn--success': submitSuccess }"
+                    :disabled="isSubmitting || submitSuccess"
+                    @click="submitMatch">
+                <span v-if="isSubmitting">SAVING...</span>
+                <span v-else-if="submitSuccess">✓ SAVED</span>
+                <span v-else>ADD MATCH</span>
+            </button>
         </div>
 
         <!-- Confirm New Opponent Modal -->
@@ -95,6 +104,7 @@
                     <button class="btn-confirm" @click="confirmNewOpponent">Yes, Add</button>
                     <button class="btn-cancel" @click="cancelNewOpponent">Cancel</button>
                 </div>
+                <p v-if="confirmError" class="modal-error">{{ confirmError }}</p>
             </div>
         </div>
     </div>
@@ -102,14 +112,12 @@
 
 <script>
     import { supabase } from '../supabase'
-    import ValImageReader from '../components/ValImageReader.vue'   // ← NEW
+    import ValImageReader from '../components/ValImageReader.vue'
 
     export default {
         name: 'AddNewMatch',
 
-        components: {
-            ValImageReader,   // ← NEW
-        },
+        components: { ValImageReader },
 
         data() {
             return {
@@ -130,30 +138,28 @@
                 showOpponentDropdown: false,
                 showConfirmModal: false,
                 pendingOpponent: '',
+                confirmError: '',
 
-                // ── NEW ─────────────────────────────────────────────────
                 showImageReader: false,
                 imageMatchData: null,
-                // ── END NEW ─────────────────────────────────────────────
+
+                isSubmitting: false,
+                submitSuccess: false,
+                submitError: '',
             }
         },
 
         async created() {
             const { data: seasons } = await supabase
-                .from('seasons')
-                .select('*')
-                .order('name')
+                .from('seasons').select('*').order('name')
             this.seasons = seasons
 
-            if (seasons && seasons.length > 0) {
-                const currentSeason = seasons[seasons.length - 1]
-                await this.onSeasonSelect(currentSeason)
+            if (seasons?.length > 0) {
+                await this.onSeasonSelect(seasons[seasons.length - 1])
             }
 
             const { data: teams } = await supabase
-                .from('our_teams')
-                .select('*')
-                .order('name')
+                .from('our_teams').select('*').order('name')
             this.teams = teams
         },
 
@@ -166,7 +172,7 @@
         },
 
         methods: {
-            // ── Season / League / Opponent selectors (unchanged) ──────────
+            // ── Dropdowns ────────────────────────────────────────────────────
             async onSeasonSelect(season) {
                 this.selectedSeason = season.name
                 this.selectedSeasonId = season.id
@@ -177,10 +183,8 @@
                 this.opponentInput = ''
 
                 const { data: leagues } = await supabase
-                    .from('leagues')
-                    .select('*')
-                    .eq('season_id', season.id)
-                    .order('name')
+                    .from('leagues').select('*')
+                    .eq('season_id', season.id).order('name')
                 this.leagues = leagues
             },
 
@@ -190,11 +194,10 @@
                 this.opponentInput = ''
                 this.selectedOpponent = null
 
-                const { data: opponents } = await supabase
-                    .from('opponents')
-                    .select('*')
-                    .eq('league_id', league.id)
-                    .order('name')
+                const { data: opponents, error } = await supabase
+                    .from('opponents').select('*')
+                    .eq('league_id', league.id).order('name')
+                if (error) console.error('Failed to load opponents:', error.message)
                 this.opponents = opponents || []
                 this.filteredOpponents = []
             },
@@ -229,23 +232,32 @@
             },
 
             async confirmNewOpponent() {
+                if (!this.selectedLeagueId) {
+                    this.confirmError = 'Please select a league before adding an opponent.'
+                    return
+                }
                 const { data, error } = await supabase
                     .from('opponents')
                     .insert({ name: this.pendingOpponent, league_id: this.selectedLeagueId })
-                    .select()
-                    .single()
+                    .select().single()
 
-                if (!error && data) {
+                if (error) {
+                    this.confirmError = 'Failed to add opponent: ' + error.message
+                    return
+                }
+                if (data) {
                     this.opponents.push(data)
                     this.selectOpponent(data)
                 }
                 this.showConfirmModal = false
+                this.confirmError = ''
                 this.pendingOpponent = ''
             },
 
             cancelNewOpponent() {
                 this.showConfirmModal = false
                 this.pendingOpponent = ''
+                this.confirmError = ''
                 this.opponentInput = ''
             },
 
@@ -255,40 +267,106 @@
                 }
             },
 
-            // ── NEW: called when ValImageReader emits match-parsed ────────
+            // ── Scanner ───────────────────────────────────────────────────────
             onMatchParsed(data) {
                 this.imageMatchData = data
-                this.showImageReader = false  // collapse the scanner after confirming
+                this.showImageReader = false
             },
-            // ── END NEW ──────────────────────────────────────────────────
 
-            // ── Submit (add imageMatchData to your DB call here) ─────────
+            // ── Submit ────────────────────────────────────────────────────────
             async submitMatch() {
-                if (!this.selectedSeasonId || !this.selectedLeagueId ||
-                    !this.selectedTeam || !this.selectedOpponent) {
-                    alert('Please fill in Season, League, Team, and Opponent before submitting.')
-                    return
+                this.submitError = ''
+
+                // Validation
+                if (!this.selectedSeasonId) return this.submitError = 'Please select a season.'
+                if (!this.selectedLeagueId) return this.submitError = 'Please select a league.'
+                if (!this.selectedTeam) return this.submitError = 'Please select a team.'
+                if (!this.selectedOpponent) return this.submitError = 'Please select an opponent.'
+                if (!this.imageMatchData) return this.submitError = 'Please scan a screenshot before submitting.'
+
+                this.isSubmitting = true
+
+                try {
+                    // ── 1. Insert the match row ───────────────────────────────
+                    const { data: match, error: matchError } = await supabase
+                        .from('matches')
+                        .insert({
+                            date: this.selectedDate,
+                            season_id: this.selectedSeasonId,
+                            league_id: this.selectedLeagueId,
+                            opponent_id: this.selectedOpponent.id,
+                            our_team_name: this.selectedTeam,
+                            result: this.imageMatchData.result,
+                            our_score: this.imageMatchData.ourScore,
+                            their_score: this.imageMatchData.theirScore,
+                        })
+                        .select()
+                        .single()
+
+                    if (matchError) throw new Error('Failed to save match: ' + matchError.message)
+
+                    // ── 2. Build player rows for both teams ───────────────────
+                    const playerRows = [
+                        ...this.imageMatchData.ourTeam.map(p => ({
+                            match_id: match.id,
+                            team: 'ours',
+                            player_name: p.name,
+                            acs: p.acs || 0,
+                            kills: p.kills || 0,
+                            deaths: p.deaths || 0,
+                            assists: p.assists || 0,
+                            kd: p.kd || 0,
+                            econ_rating: p.econRating || 0,
+                            first_bloods: p.firstBloods || 0,
+                            plants: p.plants || 0,
+                            defuses: p.defuses || 0,
+                        })),
+                        ...this.imageMatchData.theirTeam.map(p => ({
+                            match_id: match.id,
+                            team: 'theirs',
+                            player_name: p.name,
+                            acs: p.acs || 0,
+                            kills: p.kills || 0,
+                            deaths: p.deaths || 0,
+                            assists: p.assists || 0,
+                            kd: p.kd || 0,
+                            econ_rating: p.econRating || 0,
+                            first_bloods: p.firstBloods || 0,
+                            plants: p.plants || 0,
+                            defuses: p.defuses || 0,
+                        })),
+                    ]
+
+                    // ── 3. Insert all player rows in one call ─────────────────
+                    const { error: playersError } = await supabase
+                        .from('match_players')
+                        .insert(playerRows)
+
+                    if (playersError) throw new Error('Match saved but player stats failed: ' + playersError.message)
+
+                    // ── 4. Success — show tick then reset form ────────────────
+                    this.submitSuccess = true
+                    setTimeout(() => this.resetForm(), 2000)
+
+                } catch (err) {
+                    console.error(err)
+                    this.submitError = err.message
+                } finally {
+                    this.isSubmitting = false
                 }
+            },
 
-                // imageMatchData is available here if the user scanned a screenshot.
-                // Example of what it contains:
-                //   this.imageMatchData.result       → 'Victory' | 'Defeat'
-                //   this.imageMatchData.ourScore     → 13
-                //   this.imageMatchData.theirScore   → 7
-                //   this.imageMatchData.ourTeam      → [ { name, acs, kills, deaths, ... } ]
-                //   this.imageMatchData.theirTeam    → [ { name, acs, kills, deaths, ... } ]
-                //
-                // Wire these into your Supabase insert when you're ready:
-                console.log('Submitting match with data:', {
-                    season: this.selectedSeasonId,
-                    league: this.selectedLeagueId,
-                    team: this.selectedTeam,
-                    opponent: this.selectedOpponent,
-                    date: this.selectedDate,
-                    matchData: this.imageMatchData,
-                })
-
-                alert('Submit logic goes here — see console for data shape.')
+            resetForm() {
+                this.imageMatchData = null
+                this.showImageReader = false
+                this.submitSuccess = false
+                this.submitError = ''
+                this.opponentInput = ''
+                this.selectedOpponent = null
+                this.selectedDate = new Date().toISOString().split('T')[0]
+                // Re-select current season to refresh leagues/opponents
+                const current = this.seasons[this.seasons.length - 1]
+                if (current) this.onSeasonSelect(current)
             },
         },
     }
@@ -389,7 +467,7 @@
                 background-color: #e41e3f;
             }
 
-    /* ── NEW: Image Reader Section ── */
+    /* Scanner Section */
     .image-reader-section {
         margin: 8px 0 24px;
         display: flex;
@@ -448,33 +526,58 @@
         .clear-scan:hover {
             color: #fff;
         }
-    /* ── END NEW ── */
 
     /* Submit */
+    .submit-error {
+        color: #e41e3f;
+        font-size: 14px;
+        margin: 0 0 12px;
+        font-family: 'Montserrat', sans-serif;
+    }
+
     .submit-row {
         display: flex;
         justify-content: flex-end;
         padding-top: 8px;
     }
 
+    /* Matches the navbar button style */
     .submit-btn {
         background-color: #e41e3f;
         color: white;
-        border: 2px solid #000;
-        padding: 10px 32px;
-        font-size: 18px;
+        border: none;
+        padding: 14px 36px;
+        font-size: 15px;
         font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
         cursor: pointer;
-        border-radius: 4px;
-        text-transform: lowercase;
-        letter-spacing: 0.05em;
+        transition: background-color 0.15s, transform 0.1s;
+        min-width: 160px;
     }
 
-        .submit-btn:hover {
+        .submit-btn:hover:not(:disabled) {
             background-color: #c41830;
         }
 
-    /* Confirm Modal */
+        .submit-btn:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .submit-btn:disabled {
+            cursor: default;
+        }
+
+    .submit-btn--loading {
+        background-color: #555;
+    }
+
+    .submit-btn--success {
+        background-color: #2dd4bf;
+    }
+
+    /* Modal */
     .modal-overlay {
         position: fixed;
         inset: 0;
@@ -506,6 +609,12 @@
             margin-bottom: 24px;
         }
 
+    .modal-error {
+        color: #e41e3f;
+        font-size: 13px;
+        margin-top: 12px;
+    }
+
     .modal-buttons {
         display: flex;
         justify-content: center;
@@ -515,12 +624,14 @@
     .btn-confirm {
         background-color: #e41e3f;
         color: white;
-        border: 2px solid #000;
+        border: none;
         padding: 10px 28px;
-        font-size: 16px;
+        font-size: 15px;
+        font-weight: 700;
         cursor: pointer;
         font-family: 'Montserrat', sans-serif;
-        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
     }
 
         .btn-confirm:hover {
@@ -530,12 +641,14 @@
     .btn-cancel {
         background-color: #555;
         color: white;
-        border: 2px solid #000;
+        border: none;
         padding: 10px 28px;
-        font-size: 16px;
+        font-size: 15px;
+        font-weight: 700;
         cursor: pointer;
         font-family: 'Montserrat', sans-serif;
-        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
     }
 
         .btn-cancel:hover {
