@@ -63,11 +63,7 @@
 
         <!-- Screenshot Scanner -->
         <div class="image-reader-section">
-            <button class="toggle-reader-btn" @click="showImageReader = !showImageReader">
-                {{ showImageReader ? '▲ Hide Scanner' : '📷 Import from Screenshot' }}
-            </button>
-
-            <div v-if="showImageReader" class="reader-wrapper">
+            <div class="reader-wrapper">
                 <ValImageReader @match-parsed="onMatchParsed" />
             </div>
 
@@ -270,7 +266,6 @@
             // ── Scanner ───────────────────────────────────────────────────────
             onMatchParsed(data) {
                 this.imageMatchData = data
-                this.showImageReader = false
             },
 
             // ── Submit ────────────────────────────────────────────────────────
@@ -358,7 +353,6 @@
 
             resetForm() {
                 this.imageMatchData = null
-                this.showImageReader = false
                 this.submitSuccess = false
                 this.submitError = ''
                 this.opponentInput = ''
@@ -474,24 +468,6 @@
         flex-direction: column;
         gap: 12px;
     }
-
-    .toggle-reader-btn {
-        align-self: flex-start;
-        background: transparent;
-        border: 1px solid #555;
-        color: #ccc;
-        padding: 8px 18px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-family: 'Montserrat', sans-serif;
-        font-size: 14px;
-        transition: border-color 0.2s, color 0.2s;
-    }
-
-        .toggle-reader-btn:hover {
-            border-color: #e41e3f;
-            color: white;
-        }
 
     .reader-wrapper {
         border: 1px solid #333;
