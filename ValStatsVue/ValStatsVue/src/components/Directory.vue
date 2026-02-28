@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="header-wrapper">
         <h1 class="title">Kettering Val Tracker</h1>
         <nav class="nav-container">
             <div class="nav-content">
@@ -44,10 +44,15 @@
 </script>
 
 <style scoped>
+    .header-wrapper {
+        background-color: #1f1f1f;
+    }
+
     .title {
         padding-top: 25px;
+        padding-bottom: 0;
         text-align: center;
-        margin: 20px 0;
+        margin: 0; 
         font-size: 50px;
         font-family: 'Montserrat', sans-serif;
         font-weight: 700;
@@ -55,10 +60,10 @@
     }
 
     .nav-container {
-        background-color: #2a2a2a;
-        border-bottom: 2px solid #000;
-        border-top: 2px solid #000;
-        padding: 20px;
+        background-color: #1f1f1f;
+        border-bottom: 3px solid #242424;
+        padding-top: 18px;
+        padding-bottom: 18px;
     }
 
     .nav-content {
@@ -95,7 +100,7 @@
         padding: 12px 30px;
         text-decoration: none;
         font-size: 18px;
-        border: 2px solid #000;
+        border-radius: 8px;
         display: inline-block;
         transition: background-color 0.3s;
         cursor: pointer;

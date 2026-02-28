@@ -45,4 +45,8 @@
         color: #888;
         font-size: 18px;
     }
+
+    button {
+        border-radius: 8px !important;
+    }
 </style>
