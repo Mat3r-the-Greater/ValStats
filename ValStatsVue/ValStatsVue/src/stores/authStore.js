@@ -12,6 +12,7 @@ export const useAuthStore = defineStore('auth', {
         role: (state) => state.profile?.role ?? null,
         isBanned: (state) => state.profile?.is_banned ?? false,
         isAdmin: (state) => state.profile?.role === 'admin',
+        isOnlyCoach: (state) => state.profile?.role === 'coach',
         isCoach: (state) => ['admin', 'coach'].includes(state.profile?.role),
         isCaptain: (state) => ['admin', 'coach', 'captain'].includes(state.profile?.role),
         isPlayer: (state) => state.profile !== null,

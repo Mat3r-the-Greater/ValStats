@@ -10,6 +10,7 @@
                         <div><router-link to="/opponents" class="nav-button">Opponents</router-link></div>
                         <!--admin only-->
                         <router-link v-if="authStore.isAdmin" to="/admin" class="nav-button admin-btn"> Admin Panel </router-link>
+                        <router-link v-if="authStore.isOnlyCoach" to="/admin" class="nav-button admin-btn"> Coach Panel </router-link>
                     </div>
                 </div>
             </nav>
@@ -77,7 +78,7 @@
         padding: 12px 30px;
         text-decoration: none;
         font-size: 25px;
-        border: 2px solid #000;
+        border-radius: 8px;
         display: inline-block;
         transition: background-color 0.3s;
         text-align: center;

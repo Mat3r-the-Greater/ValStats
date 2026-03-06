@@ -14,6 +14,7 @@
                     <router-link to="/opponents" class="nav-button">Opponents</router-link>
                     <!-- Admin only -->
                     <router-link v-if="authStore.isAdmin" to="/admin" class="nav-button admin-btn">Admin Panel</router-link>
+                    <router-link v-if="authStore.isOnlyCoach" to="/admin" class="nav-button admin-btn">Coach Panel</router-link>
                 </div>
 
                 <div class="nav-right">

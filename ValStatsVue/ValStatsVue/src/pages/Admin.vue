@@ -1,9 +1,9 @@
 <template>
     <div class="admin-page">
-        <h1>Admin Panel</h1>
+        <h1>{{ panelTitle }}</h1>
 
         <!-- Add External User -->
-        <div class="card">
+        <div class="card" v-if="authStore.isAdmin">
             <h2>Add External User</h2>
             <p class="hint">Use this to add users without a @kettering.edu email address.</p>
             <div class="form-row">
@@ -39,7 +39,8 @@
                     <tr v-for="profile in profiles" :key="profile.id">
                         <td>{{ profile.email }}</td>
                         <td>
-                            <select v-model="profile.role"
+                            <select v-if="profile.role !== 'admin' && !(authStore.role === 'coach' && profile.role === 'coach')"
+                                    v-model="profile.role"
                                     @change="updateRole(profile)"
                                     :disabled="profile.id === currentUserId">
                                 <option value="player">Player</option>
@@ -47,6 +48,7 @@
                                 <option value="coach">Coach</option>
                                 <option value="admin">Admin</option>
                             </select>
+                            <span v-else class="you-label">{{ profile.role.charAt(0).toUpperCase() + profile.role.slice(1) }}</span>
                         </td>
                         <td>
                             <span :class="profile.is_banned ? 'badge-banned' : 'badge-active'">
@@ -54,12 +56,13 @@
                             </span>
                         </td>
                         <td>
-                            <button v-if="profile.id !== currentUserId"
+                            <button v-if="profile.id !== currentUserId && !(authStore.role === 'coach' && ['coach', 'admin'].includes(profile.role))"
                                     @click="toggleBan(profile)"
                                     :class="profile.is_banned ? 'unban-btn' : 'ban-btn'">
                                 {{ profile.is_banned ? 'Unban' : 'Ban' }}
                             </button>
-                            <span v-else class="you-label">You</span>
+                            <span v-else-if="profile.id === currentUserId" class="you-label">You</span>
+                            <span v-else-if="profile.role === 'admin'" class="you-label">Admin</span>
                         </td>
                     </tr>
                 </tbody>
@@ -89,6 +92,12 @@
         computed: {
             currentUserId() {
                 return useAuthStore().user?.id
+            },
+            authStore() {
+                return useAuthStore()
+            },
+            panelTitle() {
+                return useAuthStore().isAdmin ? 'Admin Panel' : 'Coach Panel'
             }
         },
         async created() {

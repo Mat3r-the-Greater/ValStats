@@ -28,7 +28,7 @@
         <!-- Processing State -->
         <div v-if="isProcessing" class="processing-state">
             <div class="spinner-ring"></div>
-            <p class="processing-text">Parsing match data<span class="dots"></span></p>
+            <p class="processing-text">Fetching match data<span class="dots"></span></p>
         </div>
 
         <!-- Error -->
