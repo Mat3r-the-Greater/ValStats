@@ -3,6 +3,7 @@ import Home from '../pages/Home.vue'
 import AddNewMatch from '../pages/AddNewMatch.vue'
 import SeasonView from '../pages/SeasonView.vue'
 import Opponents from '../pages/Opponents.vue'
+import PlayerView from '../pages/PlayerView.vue'
 import Auth from '../pages/Auth.vue'
 import Admin from '../pages/Admin.vue'
 import NotAuthorized from '../pages/NotAuthorized.vue'
@@ -38,6 +39,12 @@ const routes = [
         name: 'Opponents',
         component: Opponents,
         meta: { requiresAuth: true }  // all roles can view
+    },
+    {
+        path: '/player-view',
+        name: 'PlayerView',
+        component: PlayerView,
+        meta: { requiresAuth: true }
     },
     {
         path: '/admin',
