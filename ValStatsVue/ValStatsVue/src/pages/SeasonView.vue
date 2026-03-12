@@ -79,6 +79,7 @@
                             <th>Opponent</th>
                             <th>Result</th>
                             <th>Score</th>
+                            <th v-if="canDelete"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -96,11 +97,16 @@
                                     </span>
                                 </td>
                                 <td class="score">{{ match.our_score }} – {{ match.their_score }}</td>
+                                <td v-if="canDelete" class="action-cell" @click.stop>
+                                    <button class="delete-btn" @click="confirmDeleteMatch(match)" title="Delete Match">
+                                        🗑
+                                    </button>
+                                </td>
                             </tr>
 
                             <!-- Expanded Stats Row -->
                             <tr v-if="expandedMatchId === match.id" class="stats-row">
-                                <td colspan="5" class="stats-cell">
+                                <td :colspan="canDelete ? 6 : 5" class="stats-cell">
                                     <div v-if="loadingStats" class="stats-loading">Loading stats...</div>
                                     <div v-else class="stats-panels">
                                         <!-- Our Team -->
@@ -186,11 +192,31 @@
                 </table>
             </div>
         </transition>
+
+        <!-- Delete Confirmation Modal -->
+        <div v-if="matchToDelete" class="modal-overlay" @click.self="matchToDelete = null">
+            <div class="confirm-modal">
+                <h3>Delete Match</h3>
+                <p>
+                    Are you sure you want to delete the match vs
+                    <strong>{{ matchToDelete.opponents?.name || 'this opponent' }}</strong>
+                    on <strong>{{ formatDate(matchToDelete.date) }}</strong>?
+                </p>
+                <p class="modal-warning">This will permanently delete the match and all associated player stats.</p>
+                <div class="modal-actions">
+                    <button class="cancel-btn" @click="matchToDelete = null">Cancel</button>
+                    <button class="delete-confirm-btn" @click="deleteMatch" :disabled="deletingMatch">
+                        {{ deletingMatch ? 'Deleting...' : 'Delete' }}
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
     import { supabase } from '../supabase'
+    import { useAuthStore } from '../stores/authStore'
 
     export default {
         name: 'SeasonView',
@@ -209,9 +235,17 @@
                 loadingStats: false,
                 ourPlayers: [],
                 theirPlayers: [],
+                matchToDelete: null,
+                deletingMatch: false,
             }
         },
         computed: {
+            authStore() {
+                return useAuthStore()
+            },
+            canDelete() {
+                return ['admin', 'coach', 'captain'].includes(this.authStore.role)
+            },
             record() {
                 return {
                     wins: this.matches.filter(m => m.result?.toLowerCase() === 'victory').length,
@@ -288,7 +322,6 @@
             },
 
             async toggleMatch(matchId) {
-                // Clicking the same row closes it
                 if (this.expandedMatchId === matchId) {
                     this.expandedMatchId = null
                     this.ourPlayers = []
@@ -307,14 +340,54 @@
                     .eq('match_id', matchId)
                     .order('acs', { ascending: false })
 
-                if (error) {
-                    console.error('Error loading player stats:', error)
-                } else {
+                if (error) console.error('Error loading player stats:', error)
+                else {
                     this.ourPlayers = (data || []).filter(p => p.team === 'ours')
                     this.theirPlayers = (data || []).filter(p => p.team === 'theirs')
                 }
 
                 this.loadingStats = false
+            },
+
+            confirmDeleteMatch(match) {
+                this.matchToDelete = match
+            },
+
+            async deleteMatch() {
+                this.deletingMatch = true
+
+                // Delete player stats first, then the match
+                const { error: playersError } = await supabase
+                    .from('match_players')
+                    .delete()
+                    .eq('match_id', this.matchToDelete.id)
+
+                if (playersError) {
+                    console.error('Failed to delete player stats:', playersError)
+                    this.deletingMatch = false
+                    return
+                }
+
+                const { error: matchError } = await supabase
+                    .from('matches')
+                    .delete()
+                    .eq('id', this.matchToDelete.id)
+
+                if (matchError) {
+                    console.error('Failed to delete match:', matchError)
+                } else {
+                    // If the deleted match was expanded, close it
+                    if (this.expandedMatchId === this.matchToDelete.id) {
+                        this.expandedMatchId = null
+                        this.ourPlayers = []
+                        this.theirPlayers = []
+                    }
+                    // Remove from local list without re-fetching
+                    this.matches = this.matches.filter(m => m.id !== this.matchToDelete.id)
+                }
+
+                this.matchToDelete = null
+                this.deletingMatch = false
             },
 
             formatDate(dateStr) {
@@ -534,6 +607,27 @@
             color: #e41e3f;
         }
 
+    .action-cell {
+        width: 48px;
+        text-align: right;
+        padding: 8px 12px 8px 0 !important;
+    }
+
+    .delete-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 22px;
+        padding: 4px 6px;
+        color: lightgray;
+        transition: color 0.2s;
+        line-height: 1;
+    }
+
+        .delete-btn:hover {
+            color: #e41e3f;
+        }
+
     .result-pill {
         display: inline-block;
         padding: 3px 12px;
@@ -671,6 +765,86 @@
         padding: 16px;
         font-style: italic;
     }
+
+    /* ── Delete Modal ──────────────────────────────────────────── */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .confirm-modal {
+        background: #1e1e1e;
+        border: 2px solid #444;
+        padding: 32px;
+        max-width: 420px;
+        width: 90%;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+        .confirm-modal h3 {
+            color: #e41e3f;
+            margin-top: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .confirm-modal p {
+            color: #ccc;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0 0 8px;
+        }
+
+    .modal-warning {
+        color: #888 !important;
+        font-size: 12px !important;
+        font-style: italic;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 24px;
+    }
+
+    .cancel-btn {
+        padding: 9px 20px;
+        background: #444;
+        color: white;
+        border: 2px solid #000;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+        .cancel-btn:hover {
+            background: #555;
+        }
+
+    .delete-confirm-btn {
+        padding: 9px 20px;
+        background: #e41e3f;
+        color: white;
+        border: 2px solid #000;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+        .delete-confirm-btn:hover:not(:disabled) {
+            background: #c41830;
+        }
+
+        .delete-confirm-btn:disabled {
+            opacity: 0.6;
+            cursor: default;
+        }
 
     /* ── Transitions ───────────────────────────────────────────── */
     .fade-slide-enter-active, .fade-slide-leave-active {

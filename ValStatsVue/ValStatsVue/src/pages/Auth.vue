@@ -33,6 +33,23 @@
                 </button>
             </form>
 
+            <!-- Forgot password link -->
+            <p v-if="mode === 'signin'" class="forgot-link" @click="showForgotPassword = !showForgotPassword">
+                Forgot your password?
+            </p>
+
+            <!-- Forgot password form -->
+            <div v-if="showForgotPassword" class="forgot-form">
+                <div class="form-group">
+                    <label>Enter your email to receive a reset link</label>
+                    <input type="email" v-model="forgotEmail" placeholder="yourname@kettering.edu" />
+                </div>
+                <p v-if="forgotMsg" :class="forgotError ? 'error-msg' : 'success-msg'">{{ forgotMsg }}</p>
+                <button class="submit-btn" @click="sendResetEmail" :disabled="forgotLoading">
+                    {{ forgotLoading ? 'Sending...' : 'Send Reset Link' }}
+                </button>
+            </div>
+
             <p class="domain-note">Sign-up is restricted to @kettering.edu addresses.<br>Contact an admin if you need access.</p>
         </div>
     </div>
@@ -52,6 +69,11 @@ export default {
             errorMsg: '',
             successMsg: '',
             loading: false,
+            showForgotPassword: false,
+            forgotEmail: '',
+            forgotMsg: '',
+            forgotError: false,
+            forgotLoading: false,
         }
     },
     methods: {
@@ -99,7 +121,23 @@ export default {
             }
 
             this.loading = false
-        }
+        },
+        async sendResetEmail() {
+            this.forgotMsg = ''
+            this.forgotLoading = true
+            const { error } = await supabase.auth.resetPasswordForEmail(this.forgotEmail, {
+                redirectTo: `${window.location.origin}/reset-password`,
+            })
+            if (error) {
+                this.forgotMsg = error.message
+                this.forgotError = true
+            } else {
+                this.forgotMsg = 'Reset link sent! Check your email.'
+                this.forgotError = false
+                this.forgotEmail = ''
+            }
+            this.forgotLoading = false
+        },
     }
 }
 </script>
@@ -226,5 +264,27 @@ export default {
         font-size: 12px;
         margin-top: 20px;
         line-height: 1.5;
+    }
+
+    .forgot-link {
+        text-align: center;
+        color: #888;
+        font-size: 12px;
+        cursor: pointer;
+        margin-top: 4px;
+        text-decoration: underline;
+    }
+
+        .forgot-link:hover {
+            color: #ccc;
+        }
+
+    .forgot-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 8px;
+        padding-top: 16px;
+        border-top: 1px solid #333;
     }
 </style>
