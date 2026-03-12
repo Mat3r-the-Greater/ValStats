@@ -8,6 +8,7 @@ import Auth from '../pages/Auth.vue'
 import Admin from '../pages/Admin.vue'
 import NotAuthorized from '../pages/NotAuthorized.vue'
 import { useAuthStore } from '../stores/authStore'
+import ResetPassword from '../pages/ResetPassword.vue'
 
 const routes = [
     {
@@ -56,6 +57,11 @@ const routes = [
         path: '/not-authorized',
         name: 'NotAuthorized',
         component: NotAuthorized,
+    },
+    {
+        path: '/reset-password',
+        name: 'ResetPassword',
+        component: ResetPassword,
     },
 ]
 

@@ -1,7 +1,7 @@
 <template>
     <div id="app">
         <template v-if="!authStore.loading">
-            <Directory v-if="$route.name !== 'Home' && $route.name !== 'Auth' && $route.name !== 'NotAuthorized'" />
+            <Directory v-if="$route.name !== 'Home' && $route.name !== 'Auth' && $route.name !== 'NotAuthorized' && $route.name !== 'ResetPassword'" />
             <router-view />
         </template>
         <div v-else class="loading-screen">
