@@ -2,7 +2,7 @@
     <div class="admin-page">
         <h1>{{ panelTitle }}</h1>
 
-        <!-- Add External User -->
+        <!-- Add External User (Admin only) -->
         <div class="card" v-if="authStore.isAdmin">
             <h2>Add External User</h2>
             <p class="hint">Use this to add users without a @kettering.edu email address.</p>
@@ -76,7 +76,6 @@
                 <button class="add-btn" @click="showAddSeason = true" title="Add Season">+</button>
             </div>
 
-            <!-- Add season inline input -->
             <div v-if="showAddSeason" class="form-row" style="margin-bottom: 16px;">
                 <input v-model="newSeasonName" type="text" placeholder="Season name (e.g. Fall 2025)" @keyup.enter="addSeason" />
                 <button class="action-btn" @click="addSeason" :disabled="addingSeason">
@@ -96,7 +95,45 @@
             <p v-if="seasonMsg" :class="seasonError ? 'error-msg' : 'success-msg'">{{ seasonMsg }}</p>
         </div>
 
-        <!-- Delete Confirmation Modal -->
+        <!-- Our Teams Management -->
+        <div class="card">
+            <div class="section-header">
+                <h2>Our Teams</h2>
+                <button class="add-btn" @click="showAddOurTeam = true" title="Add Team">+</button>
+            </div>
+
+            <div v-if="showAddOurTeam" class="form-row" style="margin-bottom: 16px;">
+                <input v-model="newOurTeamName" type="text" placeholder="Team name" @keyup.enter="addOurTeam" />
+                <button class="action-btn" @click="addOurTeam" :disabled="addingOurTeam">
+                    {{ addingOurTeam ? 'Adding...' : 'Add' }}
+                </button>
+                <button class="cancel-btn" @click="showAddOurTeam = false; newOurTeamName = ''">Cancel</button>
+            </div>
+
+            <div v-if="loadingOurTeams" class="loading">Loading teams...</div>
+            <div v-else-if="ourTeams.length === 0" class="hint">No teams yet.</div>
+            <table v-else class="user-table">
+                <thead>
+                    <tr>
+                        <th>Team Name</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="team in ourTeams" :key="team.id">
+                        <td>{{ team.name }}</td>
+                        <td style="text-align: right;">
+                            <button class="delete-btn" @click="confirmDeleteOurTeam(team)" title="Delete Team">🗑</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p v-if="ourTeamMsg" :class="ourTeamError ? 'error-msg' : 'success-msg'">{{ ourTeamMsg }}</p>
+        </div>
+
+       
+
+        <!-- Delete Season Modal -->
         <div v-if="seasonToDelete" class="modal-overlay" @click.self="seasonToDelete = null">
             <div class="confirm-modal">
                 <h3>Delete Season</h3>
@@ -113,6 +150,34 @@
             </div>
         </div>
 
+        <!-- Delete Our Team Modal -->
+        <div v-if="ourTeamToDelete" class="modal-overlay" @click.self="ourTeamToDelete = null">
+            <div class="confirm-modal">
+                <h3>Delete Team</h3>
+                <p>Are you sure you want to delete <strong>{{ ourTeamToDelete.name }}</strong>?</p>
+                <div class="modal-actions">
+                    <button class="cancel-btn" @click="ourTeamToDelete = null">Cancel</button>
+                    <button class="delete-confirm-btn" @click="deleteOurTeam" :disabled="deletingOurTeam">
+                        {{ deletingOurTeam ? 'Deleting...' : 'Delete' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Opponent Modal -->
+        <div v-if="opponentToDelete" class="modal-overlay" @click.self="opponentToDelete = null">
+            <div class="confirm-modal">
+                <h3>Delete Opponent</h3>
+                <p>Are you sure you want to delete <strong>{{ opponentToDelete.name }}</strong>?</p>
+                <div class="modal-actions">
+                    <button class="cancel-btn" @click="opponentToDelete = null">Cancel</button>
+                    <button class="delete-confirm-btn" @click="deleteOpponent" :disabled="deletingOpponent">
+                        {{ deletingOpponent ? 'Deleting...' : 'Delete' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </template>
 
@@ -124,6 +189,7 @@
         name: 'Admin',
         data() {
             return {
+                // Users
                 profiles: [],
                 loadingUsers: true,
                 newEmail: '',
@@ -132,6 +198,8 @@
                 addingUser: false,
                 addUserMsg: '',
                 addUserError: false,
+
+                // Seasons
                 seasons: [],
                 loadingSeasons: true,
                 showAddSeason: false,
@@ -141,6 +209,17 @@
                 seasonError: false,
                 seasonToDelete: null,
                 deletingSeason: false,
+
+                // Our Teams
+                ourTeams: [],
+                loadingOurTeams: true,
+                showAddOurTeam: false,
+                newOurTeamName: '',
+                addingOurTeam: false,
+                ourTeamMsg: '',
+                ourTeamError: false,
+                ourTeamToDelete: null,
+                deletingOurTeam: false,
             }
         },
         computed: {
@@ -152,13 +231,17 @@
             },
             panelTitle() {
                 return useAuthStore().isAdmin ? 'Admin Panel' : 'Coach Panel'
-            }
+            },
         },
         async created() {
             await this.loadUsers()
             await this.loadSeasons()
+            await this.loadAllLeagues()
+            await this.loadOurTeams()
+            await this.loadAllOpponents()
         },
         methods: {
+            // ── Users ────────────────────────────────────────────────────
             async loadUsers() {
                 this.loadingUsers = true
                 const { data } = await supabase.from('profiles').select('*').order('email')
@@ -186,9 +269,6 @@
                 this.addUserMsg = ''
                 this.addingUser = true
 
-                // This calls a Supabase Edge Function you'll set up to
-                // create the user with the service role key server-side.
-                // See the note below about setting that up.
                 const { data, error } = await supabase.functions.invoke('create-user', {
                     body: {
                         email: this.newEmail,
@@ -210,6 +290,8 @@
 
                 this.addingUser = false
             },
+
+            // ── Seasons ──────────────────────────────────────────────────
             async loadSeasons() {
                 this.loadingSeasons = true
                 const { data } = await supabase.from('seasons').select('*').order('name')
@@ -254,6 +336,115 @@
                 }
                 this.deletingSeason = false
             },
+
+            // ── Our Teams ────────────────────────────────────────────────
+            async loadOurTeams() {
+                this.loadingOurTeams = true
+                const { data } = await supabase.from('our_teams').select('*').order('name')
+                this.ourTeams = data ?? []
+                this.loadingOurTeams = false
+            },
+
+            async addOurTeam() {
+                if (!this.newOurTeamName.trim()) return
+                this.addingOurTeam = true
+                this.ourTeamMsg = ''
+                const { error } = await supabase.from('our_teams').insert({
+                    name: this.newOurTeamName.trim(),
+                })
+                if (error) {
+                    this.ourTeamMsg = 'Failed to add team: ' + error.message
+                    this.ourTeamError = true
+                } else {
+                    this.ourTeamMsg = `Team "${this.newOurTeamName.trim()}" added.`
+                    this.ourTeamError = false
+                    this.newOurTeamName = ''
+                    this.showAddOurTeam = false
+                    await this.loadOurTeams()
+                }
+                this.addingOurTeam = false
+            },
+
+            confirmDeleteOurTeam(team) {
+                this.ourTeamToDelete = team
+                this.ourTeamMsg = ''
+            },
+
+            async deleteOurTeam() {
+                this.deletingOurTeam = true
+                const { error } = await supabase.from('our_teams').delete().eq('id', this.ourTeamToDelete.id)
+                if (error) {
+                    this.ourTeamMsg = 'Failed to delete team: ' + error.message
+                    this.ourTeamError = true
+                } else {
+                    this.ourTeamMsg = `Team "${this.ourTeamToDelete.name}" deleted.`
+                    this.ourTeamError = false
+                    this.ourTeamToDelete = null
+                    await this.loadOurTeams()
+                }
+                this.deletingOurTeam = false
+            },
+
+            // ── Opponents ────────────────────────────────────────────────
+            async loadAllLeagues() {
+                const { data } = await supabase
+                    .from('leagues')
+                    .select('*, seasons(name)')
+                    .order('name')
+                this.allLeagues = data ?? []
+            },
+
+            async loadAllOpponents() {
+                this.loadingAllOpponents = true
+                const { data } = await supabase
+                    .from('opponents')
+                    .select('*, leagues(name)')
+                    .order('name')
+                this.allOpponents = data ?? []
+                this.loadingAllOpponents = false
+            },
+
+            async addOpponent() {
+                if (!this.newOpponentName.trim()) return
+                this.addingOpponent = true
+                this.opponentMsg = ''
+                const { error } = await supabase.from('opponents').insert({
+                    name: this.newOpponentName.trim(),
+                    league_id: this.newOpponentLeagueId,
+                })
+                if (error) {
+                    this.opponentMsg = 'Failed to add opponent: ' + error.message
+                    this.opponentError = true
+                } else {
+                    this.opponentMsg = `Opponent "${this.newOpponentName.trim()}" added.`
+                    this.opponentError = false
+                    this.newOpponentName = ''
+                    this.newOpponentLeagueId = null
+                    this.showAddOpponent = false
+                    await this.loadAllOpponents()
+                }
+                this.addingOpponent = false
+            },
+
+            confirmDeleteOpponent(opp) {
+                this.opponentToDelete = opp
+                this.opponentMsg = ''
+            },
+
+            async deleteOpponent() {
+                this.deletingOpponent = true
+                const { error } = await supabase.from('opponents').delete().eq('id', this.opponentToDelete.id)
+                if (error) {
+                    this.opponentMsg = 'Failed to delete opponent: ' + error.message
+                    this.opponentError = true
+                } else {
+                    this.opponentMsg = `Opponent "${this.opponentToDelete.name}" deleted.`
+                    this.opponentError = false
+                    this.opponentToDelete = null
+                    await this.loadAllOpponents()
+                }
+                this.deletingOpponent = false
+            },
         }
     }
 </script>
@@ -267,7 +458,8 @@
 
     h1 {
         color: rgba(247, 189, 18, 0.92);
-        font-size: 36px;
+        font-size: 45px;
+        font-weight: 700;
         margin-bottom: 30px;
     }
 
@@ -290,6 +482,7 @@
         margin-bottom: 16px;
     }
 
+    /* ── Form Row ───────────────────────────────────────────────── */
     .form-row {
         display: flex;
         gap: 10px;
@@ -322,6 +515,21 @@
             background: rgba(247, 189, 18, 0.72);
         }
 
+    .cancel-btn {
+        padding: 9px 20px;
+        background: #444;
+        color: white;
+        border: 2px solid #000;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+        .cancel-btn:hover {
+            background: #555;
+        }
+
+    /* ── User Table ─────────────────────────────────────────────── */
     .user-table {
         width: 100%;
         border-collapse: collapse;
@@ -340,7 +548,7 @@
         .user-table td {
             padding: 10px 14px;
             border-bottom: 1px solid #333;
-            color:white;
+            color: white;
         }
 
         .user-table select {
@@ -391,19 +599,7 @@
         font-size: 13px;
     }
 
-    .error-msg {
-        color: #ff4d4d;
-        margin-top: 10px;
-    }
-
-    .success-msg {
-        color: #4dff88;
-        margin-top: 10px;
-    }
-
-    .loading {
-        color: #888;
-    }
+    /* ── Section Header (Seasons / Teams / Opponents) ───────────── */
     .section-header {
         display: flex;
         align-items: center;
@@ -434,9 +630,10 @@
             background: rgba(247, 189, 18, 0.72);
         }
 
+    /* ── Season List ────────────────────────────────────────────── */
     .season-list {
         list-style: none;
-        color:white;
+        color: white;
         padding: 0;
         margin: 0;
     }
@@ -447,7 +644,7 @@
         align-items: center;
         padding: 10px 14px;
         border-bottom: 1px solid #333;
-        font-size: 18px;
+        font-size: 14px;
     }
 
         .season-row:last-child {
@@ -458,30 +655,17 @@
         background: transparent;
         border: none;
         cursor: pointer;
-        font-size: 25px;
+        font-size: 16px;
         padding: 4px 8px;
         color: #aaa;
         transition: color 0.2s;
     }
 
         .delete-btn:hover {
-            color: rgba(229,62,62,.90);
+            color: #e41e3f;
         }
 
-    .cancel-btn {
-        padding: 9px 20px;
-        background: #444;
-        color: white;
-        border: 2px solid #000;
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 700;
-        cursor: pointer;
-    }
-
-        .cancel-btn:hover {
-            background: #555;
-        }
-
+    /* ── Modal ──────────────────────────────────────────────────── */
     .modal-overlay {
         position: fixed;
         inset: 0;
@@ -501,9 +685,16 @@
     }
 
         .confirm-modal h3 {
-            color: rgba(247, 189, 18, 0.92);
+            color: #e41e3f;
             margin-top: 0;
-            font-size: 30px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .confirm-modal p {
+            color: #ccc;
+            font-size: 14px;
+            line-height: 1.6;
         }
 
     .modal-actions {
@@ -515,7 +706,7 @@
 
     .delete-confirm-btn {
         padding: 9px 20px;
-        background: rgba(247, 189, 18, 0.92);
+        background: #e41e3f;
         color: white;
         border: 2px solid #000;
         font-family: 'Montserrat', sans-serif;
@@ -526,4 +717,19 @@
         .delete-confirm-btn:hover:not(:disabled) {
             background: #c41830;
         }
+
+    /* ── Feedback Messages ──────────────────────────────────────── */
+    .error-msg {
+        color: #ff4d4d;
+        margin-top: 10px;
+    }
+
+    .success-msg {
+        color: #4dff88;
+        margin-top: 10px;
+    }
+
+    .loading {
+        color: #888;
+    }
 </style>
