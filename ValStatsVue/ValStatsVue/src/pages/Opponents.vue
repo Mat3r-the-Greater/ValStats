@@ -386,7 +386,7 @@
     .val-dropdown :deep(.btn:hover),
     .val-dropdown :deep(.btn:focus) {
         background-color: #4a4a4a;
-        border-color: #e41e3f;
+        border-color: rgba(247, 189, 18, 0.92);
         box-shadow: none;
     }
 
@@ -402,11 +402,11 @@
     }
 
     .val-dropdown :deep(.dropdown-item:hover) {
-        background-color: #e41e3f;
+        background-color: rgba(247, 189, 18, 0.92);
     }
 
     .submit-btn {
-        background-color: #e41e3f;
+        background-color: rgba(247, 189, 18, 0.92);
         color: white;
         border: none;
         padding: 10px 28px;
@@ -421,7 +421,7 @@
     }
 
         .submit-btn:hover:not(:disabled) {
-            background-color: #c41830;
+            background-color: rgba(247, 189, 18, 0.72);
         }
 
         .submit-btn:disabled {
@@ -472,7 +472,7 @@
 
         .badge.defeat {
             background-color: rgba(228, 30, 63, 0.15);
-            color: #e41e3f;
+            color: rgba(229,62,62,.92);
             border: 1px solid rgba(228, 30, 63, 0.3);
         }
 
@@ -534,7 +534,7 @@
 
         .chevron.open {
             transform: rotate(90deg);
-            color: #e41e3f;
+            color: rgba(247, 189, 18, 0.92);
         }
 
     .result-pill {
@@ -553,7 +553,7 @@
 
         .result-pill.defeat {
             background-color: rgba(228, 30, 63, 0.15);
-            color: #e41e3f;
+            color: rgba(229,62,62,1);
         }
 
     .score {
@@ -611,7 +611,7 @@
 
         .panel-title.their {
             background-color: rgba(228, 30, 63, 0.08);
-            color: #e41e3f;
+            color: rgba(228, 30, 63, .85);
             border-bottom: 1px solid rgba(228, 30, 63, 0.2);
         }
 
@@ -664,7 +664,7 @@
     }
 
     .death {
-        color: #e41e3f !important;
+        color: rgba(229,62,62,.92) !important;
         font-weight: 600;
     }
 

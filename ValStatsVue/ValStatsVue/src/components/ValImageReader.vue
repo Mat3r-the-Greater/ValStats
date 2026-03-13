@@ -278,8 +278,8 @@
     }
 
         .drop-zone:hover, .drop-zone:focus, .drop-zone.drag-over {
-            border-color: var(--clr-red);
-            background: rgba(229,62,62,.05);
+            border-color: #0B223E;
+            background: rgba(11, 34, 62, 0.05);
         }
 
     .drop-icon {
@@ -303,7 +303,7 @@
 
     .browse-btn {
         display: inline-block;
-        background: var(--clr-red);
+        background: rgba(247, 189, 18, 0.85);
         color: #fff;
         padding: 8px 20px;
         border-radius: 4px;
@@ -331,7 +331,7 @@
         width: 44px;
         height: 44px;
         border: 3px solid var(--clr-border);
-        border-top-color: var(--clr-red);
+        border-top-color: rgba(247, 189, 18, 0.9);
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
     }
@@ -648,7 +648,7 @@
         }
 
     .confirm-btn {
-        background: var(--clr-red);
+        background: rgba(11, 34, 62, 0.5);
         color: #fff;
         border: none;
         padding: 10px 28px;
@@ -663,7 +663,6 @@
 
         .confirm-btn:hover {
             opacity: .88;
-            transform: translateY(-1px);
         }
 
         .confirm-btn:active {

@@ -32,27 +32,32 @@
 </script>
 
 <style scoped>
-    .homePage{
-        display:flex;
+    .homePage {
+        display: flex;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
+        background-color: #0B223E;
+        background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.9)),url('/KU-Esports-Banner.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position-y: bottom;
     }
 
     .title {
         text-align: center;
         margin: 20px 0;
-        font-size: 75px;
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 700;
-        color: #e41e3f;
+        font-size: 80px;
+        font-family: 'Bebas Neue', sans-serif;
+        font-weight: 800;
+        color: #F7BD12;
         text-transform: uppercase;
         padding-right: 100px;
     }
 
     .nav-container {
-        border-bottom: 2px solid #000;
-        border-top: 2px solid #000;
+        border-bottom: 2px solid #081A31;
+        border-top: 2px solid #081A31;
         padding: 50px;
         vertical-align: middle;
     }
@@ -74,28 +79,29 @@
     }
 
     .nav-button {
-        background-color: #e41e3f;
-        color: white;
+        background-color: #5D6979;
+        color: #FBFBF8;
         padding: 12px 30px;
         text-decoration: none;
         font-size: 25px;
         border-radius: 8px;
         display: inline-block;
         transition: background-color 0.3s;
-        text-align: center;
-        min-width: 200px;
+        cursor: pointer;
+        font-family: 'Montserrat', sans-serif;
         font-weight: 600;
     }
 
         .nav-button:hover {
-            background-color: #c41830;
+            background-color: #474F5C;
         }
 
     .admin-btn {
-        background-color: #cebe0f;
+        background-color: #F7BD12;
+        color: #0B223F;
     }
 
         .admin-btn:hover {
-            background-color: #b5a70d;
+            background-color: #887023;
         }
 </style>

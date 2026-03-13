@@ -440,7 +440,7 @@
     .val-dropdown :deep(.btn:hover),
     .val-dropdown :deep(.btn:focus) {
         background-color: #4a4a4a;
-        border-color: #e41e3f;
+        border-color: #F7BD12;
         box-shadow: none;
     }
 
@@ -456,7 +456,9 @@
     }
 
     .val-dropdown :deep(.dropdown-item:hover) {
-        background-color: #e41e3f;
+        background-color: #F7BD12;
+        color: #0B223E;
+        font-weight:600;
     }
 
     /* ── Date Input ────────────────────────────────────────────── */
@@ -475,7 +477,7 @@
 
         .date-input:focus {
             outline: none;
-            border-color: #e41e3f;
+            border-color: #F7BD12;
         }
 
         .date-input::-webkit-calendar-picker-indicator {
@@ -508,7 +510,7 @@
 
         .opponent-input:focus {
             outline: none;
-            border-color: #e41e3f;
+            border-color: #F7BD12;
         }
 
     .opponent-dropdown {
@@ -537,7 +539,7 @@
         }
 
             .opponent-dropdown li:hover {
-                background-color: #e41e3f;
+                background-color: #F7BD12;
             }
 
     /* ── Transitions ───────────────────────────────────────────── */
@@ -565,7 +567,7 @@
 
     .modal-box {
         background-color: #2a2a2a;
-        border: 2px solid #e41e3f;
+        border: 2px solid #F7BD12;
         border-radius: 8px;
         padding: 30px 40px;
         text-align: center;
@@ -577,7 +579,8 @@
         .modal-box h3 {
             margin-top: 0;
             font-size: 22px;
-            color: #e41e3f;
+            color: #F7BD12;
+            font-weight: 600;
         }
 
         .modal-box p {
@@ -586,7 +589,7 @@
         }
 
     .modal-error {
-        color: #e41e3f;
+        color: #F7BD12;
         font-size: 14px;
         margin: -10px 0 16px 0;
     }
@@ -598,8 +601,9 @@
     }
 
     .btn-confirm {
-        background-color: #e41e3f;
-        color: white;
+        background-color: #F7BD12;
+        color: #133055;
+        font-weight: 800;
         border: 2px solid #000;
         padding: 10px 28px;
         font-size: 14px;
@@ -612,7 +616,8 @@
     }
 
         .btn-confirm:hover {
-            background-color: #c41830;
+            background-color: #887023;
+            color: #FBFBF8;
         }
 
     .btn-cancel {
@@ -644,8 +649,8 @@
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        background-color: rgba(34, 197, 94, 0.1);
-        border: 1px solid rgba(34, 197, 94, 0.3);
+        background-color: rgba(11, 34, 62, 0.12);
+        border: 1px solid rgba(247, 189, 18, 0.45);
         color: #22c55e;
         padding: 8px 16px;
         font-size: 13px;
@@ -664,7 +669,7 @@
     }
 
         .clear-scan:hover {
-            color: #e41e3f;
+            color: #F7BD12;
         }
 
     /* ── Submit Row ────────────────────────────────────────────── */
@@ -677,14 +682,14 @@
     }
 
     .submit-error {
-        color: #e41e3f;
+        color: #F7BD12;
         font-size: 13px;
         font-family: 'Montserrat', sans-serif;
         margin: 0;
     }
 
     .submit-btn {
-        background-color: #e41e3f;
+        background-color: rgba(247, 189, 18, 0.9);
         color: white;
         border: none;
         padding: 10px 36px;
@@ -699,7 +704,7 @@
     }
 
         .submit-btn:hover:not(:disabled) {
-            background-color: #c41830;
+            background-color: rgba(247, 189, 18, 0.75);
         }
 
         .submit-btn:disabled {

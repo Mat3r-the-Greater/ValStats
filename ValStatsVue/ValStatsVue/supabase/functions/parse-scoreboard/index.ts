@@ -54,12 +54,17 @@ serve(async (req: Request) => {
                             {
                                 type: 'text',
                                 text: `Parse this Valorant match scoreboard screenshot and return ONLY a JSON object with NO markdown, NO explanation, NO code fences.
-
-The winning team rows are colored green/teal (and one yellow for the top player). The losing team rows are red/crimson.
-The score is shown at the top: the teal/cyan number = our team's rounds won, the red number = opponent's rounds won. "VICTORY" or "DEFEAT" is shown in white text.
-
-Strip any clan tags from player names (e.g. "Hill | solus" → "solus", "Hill|Tri" → "Tri").
-
+ 
+ROW COLORS determine which team a player belongs to — do NOT use win/loss to assign players to teams:
+- Teal/green rows = ourTeam. One player may have a yellow/gold highlighted row instead of teal — this is the top-performing player overall and they still belong to ourTeam, NOT theirTeam.
+- Red/crimson rows = theirTeam (the opponents).
+- Either team can be the winner. Do NOT swap teams based on who won.
+ 
+The score is shown at the top as two numbers: the LEFT number = ourTeam's rounds won, the RIGHT number = theirTeam's rounds won. The winner's number is teal/cyan and the loser's number is red — but color only tells you who won, NOT which team is ours. Always use position (left/right) to assign scores.
+"VICTORY" means ourTeam won. "DEFEAT" means theirTeam won.
+ 
+Strip any clan tags from player names (e.g. "Hill | solus" -> "solus", "Hill|Tri" -> "Tri").
+ 
 Return this exact JSON structure:
 {
   "result": "Victory",
@@ -73,11 +78,12 @@ Return this exact JSON structure:
     { "name": "solus", "acs": 345, "kills": 25, "deaths": 17, "assists": 4, "econRating": 81, "firstBloods": 2, "plants": 1, "defuses": 1 }
   ]
 }
-
+ 
 Rules:
 - result must be exactly "Victory" or "Defeat"
-- ourTeam = teal/green/yellow rows (winning team)
-- theirTeam = red/crimson rows (losing team)
+- ourTeam = ALL teal/green rows + the yellow/gold row (5 players total)
+- theirTeam = ALL red/crimson rows (5 players total)
+- The yellow/gold highlighted player is always in ourTeam, never in theirTeam
 - All numeric fields must be integers
 - map field can be empty string if not visible`,
                             },

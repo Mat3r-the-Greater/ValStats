@@ -22,7 +22,7 @@ export default { name: 'NotAuthorized' }
     }
 
     h1 {
-        color: #e41e3f;
+        color: rgba(247, 189, 18, 0.92);
         font-size: 48px;
     }
 
@@ -32,7 +32,7 @@ export default { name: 'NotAuthorized' }
     }
 
     .home-btn {
-        background: #e41e3f;
+        background: rgba(247, 189, 18, 0.92);
         color: white;
         padding: 12px 30px;
         text-decoration: none;
