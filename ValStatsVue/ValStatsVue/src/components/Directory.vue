@@ -47,25 +47,28 @@
 
 <style scoped>
     .header-wrapper {
-        background-color: #1f1f1f;
+        background-color: #0B223F;
+        background-image: url('/KU-Esports.png');
+        background-size: contain;
+        background-position: 125px center;
+        background-repeat: no-repeat;
     }
 
     .title {
         padding-top: 25px;
-        padding-bottom: 0;
+        padding-bottom: 15px;
         text-align: center;
-        margin: 0; 
+        margin: 0;
         font-size: 50px;
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'Bebas Neue', sans-serif;
         font-weight: 700;
-        color: #e41e3f;
+        color: #F7BD12;
     }
 
     .nav-container {
-        background-color: #1f1f1f;
-        border-bottom: 3px solid #242424;
+        border-bottom: 3px solid #081A31;
         padding-top: 18px;
-        padding-bottom: 18px;
+        padding-bottom: 30px;
     }
 
     .nav-content {
@@ -97,8 +100,8 @@
     }
 
     .nav-button {
-        background-color: #e41e3f;
-        color: white;
+        background-color: #5D6979;
+        color: #FBFBF8;
         padding: 12px 30px;
         text-decoration: none;
         font-size: 18px;
@@ -111,15 +114,16 @@
     }
 
         .nav-button:hover {
-            background-color: #c41830;
+            background-color: #474F5C;
         }
 
     .admin-btn {
-        background-color: #cebe0f;
+        background-color: #F7BD12;
+        color: #0B223F;
     }
 
         .admin-btn:hover {
-            background-color: #b5a70d;
+            background-color: #887023;
         }
 
     .signout-btn {

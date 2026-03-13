@@ -266,7 +266,7 @@
     }
 
     h1 {
-        color: #e41e3f;
+        color: rgba(247, 189, 18, 0.92);
         font-size: 36px;
         margin-bottom: 30px;
     }
@@ -279,7 +279,7 @@
     }
 
         .card h2 {
-            color: #e41e3f;
+            color: rgba(247, 189, 18, 0.92);
             margin-top: 0;
             margin-bottom: 12px;
         }
@@ -310,7 +310,7 @@
 
     .action-btn {
         padding: 9px 20px;
-        background: #e41e3f;
+        background: rgba(247, 189, 18, 0.92);
         color: white;
         border: 2px solid #000;
         font-family: 'Montserrat', sans-serif;
@@ -319,7 +319,7 @@
     }
 
         .action-btn:hover:not(:disabled) {
-            background: #c41830;
+            background: rgba(247, 189, 18, 0.72);
         }
 
     .user-table {
@@ -416,7 +416,7 @@
         }
 
     .add-btn {
-        background: #e41e3f;
+        background: rgba(247, 189, 18, 0.92);
         color: white;
         border: 2px solid #000;
         width: 32px;
@@ -431,7 +431,7 @@
     }
 
         .add-btn:hover {
-            background: #c41830;
+            background: rgba(247, 189, 18, 0.72);
         }
 
     .season-list {
@@ -465,7 +465,7 @@
     }
 
         .delete-btn:hover {
-            color: #e41e3f;
+            color: rgba(229,62,62,.90);
         }
 
     .cancel-btn {
@@ -501,7 +501,7 @@
     }
 
         .confirm-modal h3 {
-            color: #e41e3f;
+            color: rgba(247, 189, 18, 0.92);
             margin-top: 0;
             font-size: 30px;
         }
@@ -515,7 +515,7 @@
 
     .delete-confirm-btn {
         padding: 9px 20px;
-        background: #e41e3f;
+        background: rgba(247, 189, 18, 0.92);
         color: white;
         border: 2px solid #000;
         font-family: 'Montserrat', sans-serif;

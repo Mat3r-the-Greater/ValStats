@@ -148,11 +148,15 @@ export default {
         justify-content: center;
         align-items: center;
         min-height: 100vh;
-        background-color: #2a2a2a;
+        background-color: #0B223E;
+        background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.9)),url('/KU-Esports-Banner.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position-y: bottom;
     }
 
     .auth-card {
-        background-color: #1e1e1e;
+        background-color: #0B223F;
         border: 2px solid #000;
         padding: 40px;
         width: 100%;
@@ -163,7 +167,8 @@ export default {
         text-align: center;
         font-size: 28px;
         font-weight: 800;
-        color: #e41e3f;
+        font-family: 'Bebas Neue', sans-serif;
+        color: #F7BD12;
         margin-bottom: 30px;
         text-transform: uppercase;
     }
@@ -187,8 +192,9 @@ export default {
     }
 
         .tab-btn.active {
-            background: #e41e3f;
+            background: #F7BD12;
             font-weight: 700;
+            color: #081A31;
         }
 
     .auth-form {
@@ -221,12 +227,12 @@ export default {
         }
 
             .form-group input:focus {
-                border-color: #e41e3f;
+                border-color: #F7BD12;
             }
 
     .submit-btn {
         padding: 12px;
-        background: #e41e3f;
+        background: #F7BD12;
         color: white;
         border: 2px solid #000;
         font-size: 16px;
@@ -235,10 +241,11 @@ export default {
         cursor: pointer;
         transition: background 0.2s;
         margin-top: 8px;
+        color: #081A31;
     }
 
         .submit-btn:hover:not(:disabled) {
-            background: #c41830;
+            background: #887023;
         }
 
         .submit-btn:disabled {
@@ -261,7 +268,7 @@ export default {
     .domain-note {
         text-align: center;
         color: #666;
-        font-size: 12px;
+        font-size: 13px;
         margin-top: 20px;
         line-height: 1.5;
     }

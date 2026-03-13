@@ -28,7 +28,12 @@
     body {
         margin: 0;
         padding: 0;
-        background-color: #2a2a2a !important;
+        
+        background-color: #0B223E !important;
+        background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,1.2)),url('/KU-Esports-Banner.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position-y: bottom;
     }
 
     #app {

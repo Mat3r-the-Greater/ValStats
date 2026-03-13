@@ -759,8 +759,7 @@
     }
 
         .tab-btn.active {
-            color: #e41e3f;
-            border-bottom-color: #e41e3f;
+            color: rgba(247, 189, 18, 0.92);
         }
 
         .tab-btn:hover:not(.active) {
@@ -906,7 +905,7 @@
     }
 
         .search-input:focus {
-            border-color: #e41e3f;
+            border-color: rgba(247, 189, 18, 0.92);
         }
 
         .search-input::placeholder {
@@ -961,7 +960,7 @@
 
     .badge-theirs {
         background-color: rgba(228, 30, 63, 0.1);
-        color: #e41e3f;
+        color: rgba(229,62,62,.92);
         border: 1px solid rgba(228, 30, 63, 0.25);
     }
 
@@ -986,7 +985,7 @@
         margin-top: 20px;
         background-color: #1e1e1e;
         border: 1px solid #333;
-        border-left: 3px solid #e41e3f;
+        border-left: 3px solid rgba(229,62,62,.9);
         padding: 14px 20px;
         display: flex;
         align-items: center;
@@ -1018,8 +1017,8 @@
 
     .banner-theirs {
         background-color: rgba(228, 30, 63, 0.1);
-        color: #e41e3f;
-        border: 1px solid rgba(228, 30, 63, 0.25);
+        color: rgba(229,62,62,.9);
+        border: 1px solid rgba(229,62,62,.9);
     }
 
     .clear-player-btn {
@@ -1055,7 +1054,7 @@
     .loading-dot {
         width: 8px;
         height: 8px;
-        background-color: #e41e3f;
+        background-color: rgba(247, 189, 18, 0.92);
         border-radius: 50%;
         animation: pulse 1s infinite;
     }
@@ -1238,7 +1237,7 @@
 
         .chevron.open {
             transform: rotate(90deg);
-            color: #e41e3f;
+            color: rgba(247, 189, 18, 0.92);
         }
 
     .result-pill {
@@ -1258,7 +1257,7 @@
 
         .result-pill.defeat {
             background-color: rgba(228, 30, 63, 0.12);
-            color: #e41e3f;
+            color: rgba(229,62,62,1);
         }
 
         .result-pill.draw {
@@ -1322,7 +1321,7 @@
     }
 
     .death {
-        color: #e41e3f !important;
+        color: rgba(229,62,62,.9) !important;
         font-weight: 600;
     }
 
@@ -1332,7 +1331,7 @@
     }
 
     .kd-negative {
-        color: #e41e3f !important;
+        color: rgba(229,62,62,.9) !important;
         font-weight: 700;
     }
 

@@ -89,7 +89,7 @@ export default {
         text-align: center;
         font-size: 28px;
         font-weight: 800;
-        color: #e41e3f;
+        color: rgba(247, 189, 18, 0.92);
         margin-bottom: 8px;
         text-transform: uppercase;
     }
@@ -132,12 +132,12 @@ export default {
         }
 
             .form-group input:focus {
-                border-color: #e41e3f;
+                border-color: rgba(247, 189, 18, 0.92);
             }
 
     .submit-btn {
         padding: 12px;
-        background: #e41e3f;
+        background: rgba(247, 189, 18, 0.92);
         color: white;
         border: 2px solid #000;
         font-size: 16px;
