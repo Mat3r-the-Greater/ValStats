@@ -47,9 +47,9 @@
     .title {
         text-align: center;
         margin: 20px 0;
-        font-size: 80px;
+        font-size: 100px;
         font-family: 'Bebas Neue', sans-serif;
-        font-weight: 800;
+        font-weight: 700;
         color: #F7BD12;
         text-transform: uppercase;
         padding-right: 100px;

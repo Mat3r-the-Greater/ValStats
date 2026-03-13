@@ -60,7 +60,7 @@
         text-align: center;
         margin: 0;
         font-size: 50px;
-        font-family: 'Montserrat', sans-serif;
+        font-family: 'Bebas Neue', sans-serif;
         font-weight: 700;
         color: #F7BD12;
     }
