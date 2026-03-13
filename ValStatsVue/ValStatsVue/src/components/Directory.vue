@@ -130,6 +130,14 @@
             background-color: #887023;
         }
 
+    .nav-button.router-link-exact-active {
+        background-color: #474F5C;
+    }
+
+    .admin-btn.router-link-exact-active {
+        background-color: #887023;
+    }
+
     .signout-btn {
         background-color: #444;
         font-size: 14px;
