@@ -46,9 +46,8 @@
 <style scoped>
     .header-wrapper {
         background-color: #0B223F;
-        background-image: url('/KU-Esports.png');
+        background-image: radial-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.4)),url('/KU-Esports.png');
         background-size: contain;
-        background-position: 125px center;
         background-repeat: no-repeat;
     }
 
@@ -64,7 +63,7 @@
     }
 
     .nav-container {
-        border-bottom: 3px solid #081A31;
+        border-bottom: 1px ridge rgba(11, 34, 62, 0.05);
         padding-top: 18px;
         padding-bottom: 30px;
     }
