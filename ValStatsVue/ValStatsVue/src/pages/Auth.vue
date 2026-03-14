@@ -24,6 +24,13 @@
                            required
                            minlength="6" />
                 </div>
+                <div class="form-group" v-if="mode === 'signup'">
+                    <label>Confirm Password</label>
+                    <input type="password"
+                           v-model="confirmPassword"
+                           placeholder="Confirm password"
+                           required />
+                </div>
 
                 <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
                 <p v-if="successMsg" class="success-msg">{{ successMsg }}</p>
@@ -66,6 +73,7 @@ export default {
             mode: 'signin',
             email: '',
             password: '',
+            confirmpassword: '',
             errorMsg: '',
             successMsg: '',
             loading: false,
@@ -88,6 +96,11 @@ export default {
                     this.loading = false
                     return
                 }
+                if (this.password !== this.confirmPassword) {
+                    this.errorMsg = 'Passwords do not match.'
+                    this.loading = false
+                    return
+                }
 
                 const { error } = await supabase.auth.signUp({
                     email: this.email,
@@ -99,6 +112,9 @@ export default {
                 } else {
                     this.successMsg = 'Account created! Check your email to confirm, then sign in.'
                     this.mode = 'signin'
+                    this.email = ''
+                    this.password = ''
+                    this.confirmPassword = ''
                 }
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
