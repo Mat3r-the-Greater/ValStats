@@ -312,7 +312,7 @@
                     .eq('season_id', this.selectedSeason.id)
                     .eq('league_id', this.selectedLeague.id)
                     .eq('our_team_name', this.selectedTeam.name)
-                    .order('date', { ascending: true })
+                    .order('date', { ascending: false })
 
                 if (error) console.error('Error loading matches:', error)
                 else this.matches = data || []
