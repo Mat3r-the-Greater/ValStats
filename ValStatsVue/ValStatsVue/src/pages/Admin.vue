@@ -303,17 +303,56 @@
                 if (!this.newSeasonName.trim()) return
                 this.addingSeason = true
                 this.seasonMsg = ''
-                const { error } = await supabase.from('seasons').insert({ name: this.newSeasonName.trim() })
+
+                const { data: newSeason, error } = await supabase
+                    .from('seasons')
+                    .insert({ name: this.newSeasonName.trim() })
+                    .select()
+                    .single()
+
                 if (error) {
                     this.seasonMsg = 'Failed to add season: ' + error.message
                     this.seasonError = true
-                } else {
-                    this.seasonMsg = `Season "${this.newSeasonName.trim()}" added.`
-                    this.seasonError = false
-                    this.newSeasonName = ''
-                    this.showAddSeason = false
-                    await this.loadSeasons()
+                    this.addingSeason = false
+                    return
                 }
+
+                const { data: existingLeagues, error: leagueError } = await supabase
+                    .from('leagues')
+                    .select('name')
+
+                if (leagueError) {
+                    this.seasonMsg = `Season added, but failed to copy leagues: ${leagueError.message}`
+                    this.seasonError = true
+                    this.addingSeason = false
+                    return
+                }
+
+                const uniqueNames = [...new Set((existingLeagues || []).map(l => l.name))]
+
+                if (uniqueNames.length > 0) {
+                    const leagueRows = uniqueNames.map(name => ({
+                        name,
+                        season_id: newSeason.id,
+                    }))
+
+                    const { error: insertError } = await supabase
+                        .from('leagues')
+                        .insert(leagueRows)
+
+                    if (insertError) {
+                        this.seasonMsg = `Season added, but failed to copy leagues: ${insertError.message}`
+                        this.seasonError = true
+                        this.addingSeason = false
+                        return
+                    }
+                }
+
+                this.seasonMsg = `Season "${newSeason.name}" added with ${uniqueNames.length} league(s).`
+                this.seasonError = false
+                this.newSeasonName = ''
+                this.showAddSeason = false
+                await this.loadSeasons()
                 this.addingSeason = false
             },
 
